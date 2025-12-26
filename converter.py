@@ -2,14 +2,36 @@ import sys
 import os
 import json
 import re
+from typing import Dict, Any
+
 import markdown
 from airium import Airium
 
-def load_themes():
-    with open('themes.json', 'r', encoding='utf-8') as f:
-        return json.load(f)
+DEFAULT_THEME: Dict[str, str] = {
+    "bg": "#002b36",
+    "text": "#839496",
+    "accent": "#2aa198",
+    "code_bg": "#073642",
+    "border": "#586e75",
+    "quote_bar": "#2aa198",
+    "table_header": "#073642"
+}
 
-def create_html(md_content, theme_data):
+def load_themes() -> Dict[str, Any]:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(script_dir, 'themes.json')
+    
+    if not os.path.exists(json_path):
+        return {"default": DEFAULT_THEME}
+        
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data: Dict[str, Any] = json.load(f)
+            return data
+    except (json.JSONDecodeError, IOError, PermissionError):
+        return {"default": DEFAULT_THEME}
+
+def create_html(md_content: str, theme_data: Dict[str, str]) -> str:
     html_body = markdown.markdown(md_content, extensions=[
         'extra', 'sane_lists', 'wikilinks', 'nl2br'
     ])
@@ -19,49 +41,42 @@ def create_html(md_content, theme_data):
     with a.html(lang="ru"):
         with a.head():
             a.meta(charset="utf-8")
-            a.title(_t="Converted Document")
+            a.title(_t="MarkFlow Document")
             with a.style():
                 a(f"""
                     body {{
-                        background-color: {theme_data['bg']};
-                        color: {theme_data['text']};
+                        background-color: {theme_data.get('bg', '#fff')};
+                        color: {theme_data.get('text', '#000')};
                         font-family: 'Segoe UI', system-ui, sans-serif;
                         line-height: 1.6; padding: 50px;
                         max-width: 900px; margin: 0 auto;
                     }}
-                    h1, h2, h3, h4, h5, h6 {{ color: {theme_data['accent']}; }}
+                    h1, h2, h3, h4, h5, h6 {{ color: {theme_data.get('accent', 'blue')}; }}
                     a, .wikilink {{ 
-                        color: {theme_data['accent']}; 
-                        text-decoration: none; 
-                        border-bottom: 1px solid; 
+                        color: {theme_data.get('accent', 'blue')}; 
+                        text-decoration: none; border-bottom: 1px solid; 
                     }}
-                    hr {{ border: 0; border-top: 2px solid {theme_data['border']}; margin: 40px 0; }}
+                    hr {{ border: 0; border-top: 2px solid {theme_data.get('border', '#ccc')}; margin: 40px 0; }}
                     blockquote {{
-                        border-left: 5px solid {theme_data['quote_bar']};
+                        border-left: 5px solid {theme_data.get('quote_bar', 'grey')};
                         padding-left: 20px; margin: 20px 0;
                         font-style: italic; opacity: 0.9;
                     }}
                     code {{
-                        background: {theme_data['code_bg']};
-                        padding: 3px 6px; border-radius: 4px;
-                        font-family: monospace;
+                        background: {theme_data.get('code_bg', '#eee')};
+                        padding: 3px 6px; border-radius: 4px; font-family: monospace;
                     }}
                     pre {{
-                        background: {theme_data['code_bg']};
-                        padding: 20px; border-radius: 10px;
-                        overflow-x: auto;
+                        background: {theme_data.get('code_bg', '#eee')};
+                        padding: 20px; border-radius: 10px; overflow-x: auto;
                     }}
-                    table {{
-                        border-collapse: collapse; width: 100%; margin: 25px 0;
-                    }}
+                    table {{ border-collapse: collapse; width: 100%; margin: 25px 0; }}
                     th, td {{
-                        border: 1px solid {theme_data['border']};
+                        border: 1px solid {theme_data.get('border', '#ccc')};
                         padding: 12px; text-align: left;
                     }}
-                    th {{ background: {theme_data['table_header']}; }}
+                    th {{ background: {theme_data.get('table_header', '#ddd')}; }}
                     img {{ max-width: 100%; border-radius: 8px; }}
-                    ins {{ text-decoration: underline; }}
-                    del {{ opacity: 0.6; }}
                 """)
         
         with a.body():
@@ -70,7 +85,7 @@ def create_html(md_content, theme_data):
 
     return str(a)
 
-def main():
+def main() -> None:
     if len(sys.argv) < 4:
         print("Usage: converter.py <input.md> <output.html> <theme_name>")
         return
@@ -79,7 +94,11 @@ def main():
 
     try:
         themes = load_themes()
-        theme_data = themes.get(theme_name, list(themes.values())[0])
+        theme_data = themes.get(theme_name, next(iter(themes.values()), DEFAULT_THEME))
+
+        if not os.path.exists(input_file):
+            print(f"Error: {input_file} not found.")
+            return
 
         with open(input_file, 'r', encoding='utf-8') as f:
             text = f.read()
@@ -90,10 +109,13 @@ def main():
 
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(result)
-        print(f"created, theme: {theme_name}")
+            
+        print(f"Success! Theme: {theme_name}")
 
-    except Exception as e:
-        print(f"error: {e}")
+    except (IOError, OSError) as e:
+        print(f"File system error: {e}")
+    except RuntimeError as e:
+        print(f"Runtime error: {e}")
 
 if __name__ == "__main__":
     main()
