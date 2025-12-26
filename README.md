@@ -4,11 +4,11 @@
 ## Features
 
 🎨 **More than 30 design themes**
-  - Classic (`dark-red`, `yellow`, `light-green`)
-  - Special (`matrix`)
+  - Classic (`dark-red`, `yellow`, `light-green`)  
+  - Special (`matrix`)  
 📑 **Expanded Markdown support**
-  - Support for Obsidian/Notion style links
-  - Support for tables, quotes, lists and all heading levels
+  - Support for Obsidian/Notion style links  
+  - Support for tables, quotes, lists and all heading levels  
 ## Installation
 
 1. Clone the repository (or download the files manually)
