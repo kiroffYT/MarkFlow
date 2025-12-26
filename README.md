@@ -5,7 +5,8 @@
 
 🎨 **More than 30 design themes**
   - Classic (`dark-red`, `yellow`, `light-green`)  
-  - Special (`matrix`)  
+  - Special (`matrix`)
+
 📑 **Expanded Markdown support**
   - Support for Obsidian/Notion style links  
   - Support for tables, quotes, lists and all heading levels  
